@@ -4,9 +4,6 @@ import pygame
 import numpy as np
 from matplotlib import colormaps
 
-pygame.init()
-screen = pygame.display.set_mode((1280, 720))
-
 
 def get_colormap(name: str) -> list[[int, int, int]]:
     colors = []
@@ -28,9 +25,7 @@ def mandelbrot(x: float, y: float, cutoff: int) -> int:
     return iterations - 1
 
 
-def compute_mandelbrot(x: [float, float], y: [float, float], cutoff: int):
-    height = screen.get_height()
-    width = screen.get_width()
+def compute_mandelbrot(width: int, height: int, x: [float, float], y: [float, float], cutoff: int):
     pixes = np.zeros((width, height))
     x_scale = abs(x[0] - x[1]) / width
     y_scale = abs(y[0] - y[1]) / height
@@ -51,7 +46,7 @@ def apply_colormap(divergence: np.array, cutoff: int, colormap: list[[float, flo
     return pixels
 
 
-def ranges(center: pygame.Vector2, size: float) -> [[float, float], [float, float]]:
+def ranges(screen: pygame.Surface, center: pygame.Vector2, size: float) -> [[float, float], [float, float]]:
     x_center, y_center = center
     width, height = screen.get_width(), screen.get_height()
     ratio = height / width
@@ -60,7 +55,7 @@ def ranges(center: pygame.Vector2, size: float) -> [[float, float], [float, floa
     return x_range, y_range
 
 
-def mouse_direction() -> pygame.Vector2:
+def mouse_direction(screen: pygame.Surface) -> pygame.Vector2:
     mouse_x, mouse_y = pygame.mouse.get_pos()
     width, height = screen.get_width(), screen.get_height()
     return pygame.Vector2(
@@ -69,9 +64,9 @@ def mouse_direction() -> pygame.Vector2:
     )
 
 
-def mouse_position(center: pygame.Vector2, size: float) -> pygame.Vector2:
-    direction = mouse_direction()
-    x_range, y_range = ranges(center, size)
+def mouse_position(screen: pygame.Surface, center: pygame.Vector2, size: float) -> pygame.Vector2:
+    direction = mouse_direction(screen)
+    x_range, y_range = ranges(screen, center, size)
     return pygame.Vector2(
         x=direction.x * (x_range[1] - x_range[0]),
         y=direction.y * (y_range[1] - y_range[0]),
@@ -79,6 +74,10 @@ def mouse_position(center: pygame.Vector2, size: float) -> pygame.Vector2:
 
 
 def run():
+    pygame.init()
+    screen = pygame.display.set_mode((1280, 720))
+    pygame.display.set_caption("Mandelbrot")
+
     clock = pygame.time.Clock()
     running = True
 
@@ -103,21 +102,21 @@ def run():
             elif event.type == pygame.MOUSEMOTION:
                 left, middle, right = event.buttons
                 if left:
-                    x_range, y_range = ranges(center, size)
+                    x_range, y_range = ranges(screen, center, size)
                     diff = pygame.Vector2(
                         x=event.rel[0] / screen.get_width() * (x_range[1] - x_range[0]),
                         y=event.rel[1] / screen.get_height() * (y_range[1] - y_range[0]),
                     )
                     center = center - diff
             elif event.type == pygame.MOUSEWHEEL:
-                mouse_position_before_zoom = mouse_position(center, size)
+                mouse_position_before_zoom = mouse_position(screen, center, size)
                 if event.precise_y < 0:
                     # Zoom out
                     size *= zoom_factor
                 else:
                     # Zoom in
                     size /= zoom_factor
-                mouse_position_after_zoom = mouse_position(center, size)
+                mouse_position_after_zoom = mouse_position(screen, center, size)
 
                 diff = (mouse_position_before_zoom - mouse_position_after_zoom) * zoom_factor
                 center += diff
@@ -130,8 +129,11 @@ def run():
             # Decrease 'resolution'
             cutoff = max(2, min(int(cutoff / detail_scale), cutoff - 1))
 
-        x_range, y_range = ranges(center, size)
-        divergence = compute_mandelbrot(x_range, y_range, cutoff)
+        x_range, y_range = ranges(screen, center, size)
+        divergence = compute_mandelbrot(
+            screen.get_width(), screen.get_height(),
+            x_range, y_range, cutoff
+        )
 
         pixels = apply_colormap(divergence, cutoff, colors)
         pygame.surfarray.blit_array(screen, pixels)
