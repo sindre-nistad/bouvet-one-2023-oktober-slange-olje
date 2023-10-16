@@ -82,6 +82,7 @@ def run():
     running = True
 
     colors = get_colormap("magma")
+    font = pygame.sysfont.SysFont("helveticaneue", 24)
 
     # The (mathematical) center of the screen
     center = pygame.Vector2(-1, 0)
@@ -94,6 +95,7 @@ def run():
     cutoff = 10
 
     detail_scale = 1.3
+    info = pygame.rect.Rect(0, 0, 400, 100)
 
     while running:
         for event in pygame.event.get():
@@ -142,10 +144,16 @@ def run():
         pygame.display.flip()
 
         dt = clock.tick(60) / 1000
+        screen.blit(font.render(
+            f"{1 / dt:.2f} fps"
+            if dt < 1 else
+            f"{dt} spf",
+            1, (255, 255, 255)
+        ), info)
+        pygame.display.update()
 
     pygame.quit()
 
 
 if __name__ == '__main__':
     run()
-
