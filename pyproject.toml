@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "slangeolje"
+version = "0.1.0"
+description = ""
+authors = ["Sindre Nistad <sindre.nistad@bouvet.no>"]
+license = "BSD-3"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11,<3.13"
+pygame = "^2.5.2"
+numpy = "^1.26.0"
+matplotlib = "^3.8.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
