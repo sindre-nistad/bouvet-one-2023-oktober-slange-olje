@@ -4,6 +4,8 @@ import pygame
 import numpy as np
 from matplotlib import colormaps
 
+from compute import compute_mandelbrot
+
 
 def get_colormap(name: str) -> list[[int, int, int]]:
     colors = []
@@ -12,32 +14,8 @@ def get_colormap(name: str) -> list[[int, int, int]]:
     return colors
 
 
-def mandelbrot(x: float, y: float, cutoff: int) -> int:
-    """Compute the margins of the mandelbrot set"""
-    z = 0 + 0j
-    c = x + y * 1j
-    iterations = 0
-    while iterations < cutoff and abs(z) <= 2:
-        z = z ** 2 + c
-        iterations += 1
-    # The first iteration could be considered the zeroth, as z will always be 0
-    # in that iteration, so the loop will be executed at least once.
-    return iterations - 1
-
-
-def compute_mandelbrot(width: int, height: int, x: [float, float], y: [float, float], cutoff: int):
-    pixes = np.zeros((width, height))
-    x_scale = abs(x[0] - x[1]) / width
-    y_scale = abs(y[0] - y[1]) / height
-
-    for i in range(width):
-        for j in range(height):
-            pixes[i][j] = mandelbrot(x[0] + i * x_scale, y[0] + j * y_scale, cutoff)
-    return pixes
-
-
 def apply_colormap(divergence: np.array, cutoff: int, colormap: list[[float, float, float]]):
-    conv = np.floor(divergence / cutoff * len(colormap)).astype(np.uint64)
+    conv = np.floor(np.asarray(divergence) / cutoff * len(colormap)).astype(np.uint64)
     n, m = conv.shape
     pixels = np.zeros((n, m, 3), dtype=np.uint8)
     for i in range(n):
@@ -111,7 +89,7 @@ def run():
                         x=event.rel[0] / screen.get_width() * (x_range[1] - x_range[0]),
                         y=event.rel[1] / screen.get_height() * (y_range[1] - y_range[0]),
                     )
-                    center = center - diff
+                    center -= diff
             elif event.type == pygame.MOUSEWHEEL:
                 mouse_position_before_zoom = mouse_position(screen, center, size)
                 if event.precise_y < 0:
