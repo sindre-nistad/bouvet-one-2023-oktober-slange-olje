@@ -97,7 +97,9 @@ def run():
     detail_scale = 1.3
     info = pygame.rect.Rect(0, 0, 400, 100)
 
-    while running:
+    def handle_events():
+        nonlocal running, center, size, x_range, y_range, cutoff
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -130,6 +132,9 @@ def run():
         if keys[pygame.K_MINUS] or keys[pygame.K_KP_MINUS]:
             # Decrease 'resolution'
             cutoff = max(2, min(int(cutoff / detail_scale), cutoff - 1))
+
+    while running:
+        handle_events()
 
         x_range, y_range = ranges(screen, center, size)
         divergence = compute_mandelbrot(
