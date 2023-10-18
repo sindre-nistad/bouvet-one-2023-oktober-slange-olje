@@ -4,24 +4,15 @@ import pygame
 import numpy as np
 from matplotlib import colormaps
 
-from compute import compute_mandelbrot
+from compute import compute_mandelbrot, apply_colormap
 
 
-def get_colormap(name: str) -> list[[int, int, int]]:
-    colors = []
-    for color in colormaps[name].colors:
-        colors.append([math.floor(channel * 256) for channel in color])
+def get_colormap(name: str):
+    mpl_colors = colormaps[name].colors
+    colors = np.zeros((len(mpl_colors), 3), dtype=np.uint8)
+    for idx, color in enumerate(mpl_colors):
+        colors[idx, :] = [math.floor(channel * 256) for channel in color]
     return colors
-
-
-def apply_colormap(divergence: np.array, cutoff: int, colormap: list[[float, float, float]]):
-    conv = np.floor(np.asarray(divergence) / cutoff * len(colormap)).astype(np.uint64)
-    n, m = conv.shape
-    pixels = np.zeros((n, m, 3), dtype=np.uint8)
-    for i in range(n):
-        for j in range(m):
-            pixels[i, j, :] = colormap[conv[i][j]]
-    return pixels
 
 
 def ranges(screen: pygame.Surface, center: pygame.Vector2, size: float) -> [[float, float], [float, float]]:
@@ -67,6 +58,10 @@ def run():
     # The (mathematical) with of the screen
     size = 2
     zoom_factor = 1.2
+
+    width, height = screen.get_width(), screen.get_height()
+    divergence = np.zeros((width, height), dtype=np.uint32)
+    pixels = np.zeros((width, height, 3), dtype=np.uint8)
 
     dt = 0
 
@@ -115,12 +110,12 @@ def run():
         handle_events()
 
         x_range, y_range = ranges(screen, center, size)
-        divergence = compute_mandelbrot(
-            screen.get_width(), screen.get_height(),
+        compute_mandelbrot(
+            divergence,
             x_range, y_range, cutoff
         )
 
-        pixels = apply_colormap(divergence, cutoff, colors)
+        apply_colormap(divergence, cutoff, colors, pixels)
         pygame.surfarray.blit_array(screen, pixels)
 
         # flip() the display to put your work on screen
