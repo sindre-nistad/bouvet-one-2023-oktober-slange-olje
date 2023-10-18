@@ -3,47 +3,78 @@ import math
 import pygame
 import numpy as np
 from matplotlib import colormaps
+from numba import njit, prange
 
 
-def get_colormap(name: str) -> list[[int, int, int]]:
-    colors = []
-    for color in colormaps[name].colors:
-        colors.append([math.floor(channel * 256) for channel in color])
+def get_colormap(name: str):
+    mpl_colors = colormaps[name].colors
+    colors = np.zeros((len(mpl_colors), 3), dtype=np.uint8)
+    for idx, color in enumerate(mpl_colors):
+        colors[idx, :] = [math.floor(channel * 256) for channel in color]
     return colors
 
 
+@njit(
+    "uint32(float64, float64, uint64)",
+    fastmath=True,
+    nogil=True,
+    inline="always",
+    boundscheck=False,
+)
 def mandelbrot(x: float, y: float, cutoff: int) -> int:
     """Compute the margins of the mandelbrot set"""
     z = 0 + 0j
     c = x + y * 1j
     iterations = 0
-    while iterations < cutoff and abs(z) <= 2:
-        z = z ** 2 + c
+    while iterations < cutoff and z.real * z.real + z.imag * z.imag <= 4:
+        z = z * z + c
         iterations += 1
     # The first iteration could be considered the zeroth, as z will always be 0
     # in that iteration, so the loop will be executed at least once.
     return iterations - 1
 
 
-def compute_mandelbrot(width: int, height: int, x: [float, float], y: [float, float], cutoff: int):
-    pixes = np.zeros((width, height))
+@njit(
+    "(uint32[:,::1], UniTuple(float64, 2), UniTuple(float64, 2), uint32)",
+    fastmath=True,
+    parallel=True,
+    nogil=True,
+    boundscheck=False,
+)
+def compute_mandelbrot(
+        divergence: np.ndarray,
+        x: [float, float],
+        y: [float, float],
+        cutoff: int,
+):
+    width, height = divergence.shape[0:2]
+
     x_scale = abs(x[0] - x[1]) / width
     y_scale = abs(y[0] - y[1]) / height
 
-    for i in range(width):
-        for j in range(height):
-            pixes[i][j] = mandelbrot(x[0] + i * x_scale, y[0] + j * y_scale, cutoff)
-    return pixes
+    for i in prange(width):
+        for j in prange(height):
+            divergence[i][j] = mandelbrot(x[0] + i * x_scale, y[0] + j * y_scale, cutoff)
 
 
-def apply_colormap(divergence: np.array, cutoff: int, colormap: list[[float, float, float]]):
-    conv = np.floor(divergence / cutoff * len(colormap)).astype(np.uint64)
-    n, m = conv.shape
-    pixels = np.zeros((n, m, 3), dtype=np.uint8)
-    for i in range(n):
-        for j in range(m):
-            pixels[i, j, :] = colormap[conv[i][j]]
-    return pixels
+@njit(
+    "(uint32[:, ::1], uint32, uint8[:, :], uint8[:, :, ::1])",
+    fastmath=True,
+    parallel=True,
+    boundscheck=False,
+)
+def apply_colormap(
+        divergence: np.array,
+        cutoff: int,
+        colormap: list[[float, float, float]],
+        pixels: np.array,
+):
+    num_colors = len(colormap)
+    n, m = divergence.shape
+    for i in prange(n):
+        for j in prange(m):
+            color_index = math.floor(divergence[i, j] / cutoff * num_colors)
+            pixels[i, j, :] = colormap[color_index]
 
 
 def ranges(screen: pygame.Surface, center: pygame.Vector2, size: float) -> [[float, float], [float, float]]:
@@ -90,6 +121,10 @@ def run():
     size = 2
     zoom_factor = 1.2
 
+    width, height = screen.get_width(), screen.get_height()
+    divergence = np.zeros((width, height), dtype=np.uint32)
+    pixels = np.zeros((width, height, 3), dtype=np.uint8)
+
     dt = 0
 
     cutoff = 10
@@ -111,7 +146,7 @@ def run():
                         x=event.rel[0] / screen.get_width() * (x_range[1] - x_range[0]),
                         y=event.rel[1] / screen.get_height() * (y_range[1] - y_range[0]),
                     )
-                    center = center - diff
+                    center -= diff
             elif event.type == pygame.MOUSEWHEEL:
                 mouse_position_before_zoom = mouse_position(screen, center, size)
                 if event.precise_y < 0:
@@ -137,12 +172,12 @@ def run():
         handle_events()
 
         x_range, y_range = ranges(screen, center, size)
-        divergence = compute_mandelbrot(
-            screen.get_width(), screen.get_height(),
+        compute_mandelbrot(
+            divergence,
             x_range, y_range, cutoff
         )
 
-        pixels = apply_colormap(divergence, cutoff, colors)
+        apply_colormap(divergence, cutoff, colors, pixels)
         pygame.surfarray.blit_array(screen, pixels)
 
         # flip() the display to put your work on screen
