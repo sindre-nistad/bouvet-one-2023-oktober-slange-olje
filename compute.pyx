@@ -22,8 +22,8 @@ def mandelbrot(x: cython.double, y: cython.double, cutoff: CUTOFF_T) -> CUTOFF_T
     z = 0 + 0j
     c = x + y * 1j
     iterations = cython.declare(CUTOFF_T, 0)
-    while iterations < cutoff and abs(z) <= 2:
-        z = z ** 2 + c
+    while iterations < cutoff and z.real * z.real + z.imag * z.imag <= 4:
+        z = z * z + c
         iterations += 1
     # The first iteration could be considered the zeroth, as z will always be 0
     # in that iteration, so the loop will be executed at least once.
