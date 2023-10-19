@@ -38,6 +38,8 @@ def mandelbrot(x: float, y: float, cutoff: int) -> int:
 @njit(
     "(uint32[:,::1], UniTuple(float64, 2), UniTuple(float64, 2), uint32)",
     fastmath=True,
+    parallel=True,
+    nogil=True,
     boundscheck=False,
 )
 def compute_mandelbrot(
@@ -51,14 +53,15 @@ def compute_mandelbrot(
     x_scale = abs(x[0] - x[1]) / width
     y_scale = abs(y[0] - y[1]) / height
 
-    for i in range(width):
-        for j in range(height):
+    for i in prange(width):
+        for j in prange(height):
             divergence[i][j] = mandelbrot(x[0] + i * x_scale, y[0] + j * y_scale, cutoff)
 
 
 @njit(
     "(uint32[:, ::1], uint32, uint8[:, ::1], uint8[:, :, ::1])",
     fastmath=True,
+    parallel=True,
     boundscheck=False,
 )
 def apply_colormap(
@@ -69,8 +72,8 @@ def apply_colormap(
 ):
     num_colors = len(colormap)
     n, m = divergence.shape
-    for i in range(n):
-        for j in range(m):
+    for i in prange(n):
+        for j in prange(m):
             color_index = math.floor(divergence[i, j] / cutoff * num_colors)
             pixels[i, j, :] = colormap[color_index]
 
