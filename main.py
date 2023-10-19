@@ -25,15 +25,15 @@ def mandelbrot(x: float, y: float, cutoff: int) -> int:
     return iterations - 1
 
 
-def compute_mandelbrot(width: int, height: int, x: [float, float], y: [float, float], cutoff: int):
-    pixes = np.zeros((width, height))
+def compute_mandelbrot(width: int, height: int, x: tuple[float, float], y: tuple[float, float], cutoff: int) -> npt.NDArray[np.uint32]:
+    divergence = np.zeros((width, height), dtype=np.uint32)
     x_scale = abs(x[0] - x[1]) / width
     y_scale = abs(y[0] - y[1]) / height
 
     for i in range(width):
         for j in range(height):
-            pixes[i][j] = mandelbrot(x[0] + i * x_scale, y[0] + j * y_scale, cutoff)
-    return pixes
+            divergence[i, j] = mandelbrot(x[0] + i * x_scale, y[0] + j * y_scale, cutoff)
+    return divergence
 
 
 def apply_colormap(divergence: np.array, cutoff: int, colormap: list[[float, float, float]]):
