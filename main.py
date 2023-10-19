@@ -2,13 +2,15 @@ import math
 
 import pygame
 import numpy as np
+import numpy.typing as npt
 from matplotlib import colormaps
 
 
-def get_colormap(name: str) -> list[[int, int, int]]:
-    colors = []
-    for color in colormaps[name].colors:
-        colors.append([math.floor(channel * 256) for channel in color])
+def get_colormap(name: str) -> npt.NDArray[np.uint8]:
+    mpl_colors = colormaps[name].colors
+    colors = np.zeros((len(mpl_colors), 3), dtype=np.uint8)
+    for idx, color in enumerate(mpl_colors):
+        colors[idx, :] = [math.floor(channel * 256) for channel in color]
     return colors
 
 
@@ -37,12 +39,12 @@ def compute_mandelbrot(width: int, height: int, x: tuple[float, float], y: tuple
 
 
 def apply_colormap(divergence: np.array, cutoff: int, colormap: list[[float, float, float]]):
-    conv = np.floor(divergence / cutoff * len(colormap)).astype(np.uint64)
-    n, m = conv.shape
+    color_index = (divergence / cutoff * len(colormap)).astype(np.uint32)
+    n, m = divergence.shape
     pixels = np.zeros((n, m, 3), dtype=np.uint8)
     for i in range(n):
         for j in range(m):
-            pixels[i, j, :] = colormap[conv[i][j]]
+            pixels[i, j, :] = colormap[color_index[i, j]]
     return pixels
 
 
