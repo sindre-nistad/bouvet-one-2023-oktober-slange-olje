@@ -111,7 +111,7 @@ def run():
                         x=event.rel[0] / screen.get_width() * (x_range[1] - x_range[0]),
                         y=event.rel[1] / screen.get_height() * (y_range[1] - y_range[0]),
                     )
-                    center = center - diff
+                    center -= diff
             elif event.type == pygame.MOUSEWHEEL:
                 mouse_position_before_zoom = mouse_position(screen, center, size)
                 if event.precise_y < 0:
