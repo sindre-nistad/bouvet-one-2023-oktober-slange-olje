@@ -7,6 +7,27 @@ from matplotlib import colormaps
 from numba import njit, prange
 
 
+class Vector2:
+
+    __slots__ = ['x', 'y']
+
+    def __init__(self, x: np.floating | float, y: np.floating | float):
+        self.x = x
+        self.y = y
+
+    def __add__(self, other: '"Vector2"'):
+        return Vector2(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other: "Vector2"):
+        return Vector2(self.x - other.x, self.y - other.y)
+
+    def __mul__(self, other: np.floating | float):
+        return Vector2(self.x * other, self.y * other)
+
+    def __iter__(self):
+        return iter([self.x, self.y])
+
+
 def get_colormap(name: str) -> npt.NDArray[np.uint8]:
     mpl_colors = colormaps[name].colors
     colors = np.zeros((len(mpl_colors), 3), dtype=np.uint8)
@@ -36,7 +57,7 @@ def mandelbrot(x: float, y: float, cutoff: int) -> int:
 
 
 @njit(
-    "(uint32[:,::1], UniTuple(float64, 2), UniTuple(float64, 2), uint32)",
+    "void(uint32[:,::1], UniTuple(float64, 2), UniTuple(float64, 2), uint32)",
     fastmath=True,
     parallel=True,
     nogil=True,
@@ -59,7 +80,7 @@ def compute_mandelbrot(
 
 
 @njit(
-    "(uint32[:, ::1], uint32, uint8[:, ::1], uint8[:, :, ::1])",
+    "void(uint32[:, ::1], uint32, uint8[:, ::1], uint8[:, :, ::1])",
     fastmath=True,
     parallel=True,
     boundscheck=False,
@@ -78,28 +99,28 @@ def apply_colormap(
             pixels[i, j, :] = colormap[color_index]
 
 
-def ranges(screen: pygame.Surface, center: pygame.Vector2, size: float) -> [[float, float], [float, float]]:
+def ranges(screen: pygame.Surface, center: Vector2, size: float) -> [[float, float], [float, float]]:
     x_center, y_center = center
     width, height = screen.get_width(), screen.get_height()
-    ratio = height / width
+    ratio = np.longfloat(height) / np.longfloat(width)
     x_range = (x_center - size / 2, x_center + size / 2)
     y_range = ((y_center - size / 2) * ratio, (y_center + size / 2) * ratio)
     return x_range, y_range
 
 
-def mouse_direction(screen: pygame.Surface) -> pygame.Vector2:
+def mouse_direction(screen: pygame.Surface) -> Vector2:
     mouse_x, mouse_y = pygame.mouse.get_pos()
     width, height = screen.get_width(), screen.get_height()
-    return pygame.Vector2(
+    return Vector2(
         x=(mouse_x - width / 2) / width,
         y=(mouse_y - height / 2) / height,
     )
 
 
-def mouse_position(screen: pygame.Surface, center: pygame.Vector2, size: float) -> pygame.Vector2:
+def mouse_position(screen: pygame.Surface, center: Vector2, size: float) -> Vector2:
     direction = mouse_direction(screen)
     x_range, y_range = ranges(screen, center, size)
-    return pygame.Vector2(
+    return Vector2(
         x=direction.x * (x_range[1] - x_range[0]),
         y=direction.y * (y_range[1] - y_range[0]),
     )
@@ -117,7 +138,7 @@ def run():
     font = pygame.sysfont.SysFont("helveticaneue", 24)
 
     # The (mathematical) center of the screen
-    center = pygame.Vector2(-1, 0)
+    center = Vector2(-1, 0)
     # The (mathematical) with of the screen
     size = 2
     zoom_factor = 1.2
@@ -143,9 +164,9 @@ def run():
                 left, middle, right = event.buttons
                 if left:
                     x_range, y_range = ranges(screen, center, size)
-                    diff = pygame.Vector2(
-                        x=event.rel[0] / screen.get_width() * (x_range[1] - x_range[0]),
-                        y=event.rel[1] / screen.get_height() * (y_range[1] - y_range[0]),
+                    diff = Vector2(
+                        x=np.longfloat(event.rel[0]) / screen.get_width() * (x_range[1] - x_range[0]),
+                        y=np.longfloat(event.rel[1]) / screen.get_height() * (y_range[1] - y_range[0]),
                     )
                     center -= diff
             elif event.type == pygame.MOUSEWHEEL:
