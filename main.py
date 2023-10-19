@@ -14,7 +14,8 @@ def get_colormap(name: str) -> npt.NDArray[np.uint8]:
     return colors
 
 
-def mandelbrot(x: float, y: float, cutoff: int) -> int:
+@np.vectorize
+def mandelbrot(x: np.float64, y: np.float64, cutoff: np.uint32) -> np.uint32:
     """Compute the margins of the mandelbrot set"""
     z = 0 + 0j
     c = x + y * 1j
@@ -28,23 +29,21 @@ def mandelbrot(x: float, y: float, cutoff: int) -> int:
 
 
 def compute_mandelbrot(width: int, height: int, x: tuple[float, float], y: tuple[float, float], cutoff: int) -> npt.NDArray[np.uint32]:
-    divergence = np.zeros((width, height), dtype=np.uint32)
     x_scale = abs(x[0] - x[1]) / width
     y_scale = abs(y[0] - y[1]) / height
 
-    for i in range(width):
-        for j in range(height):
-            divergence[i, j] = mandelbrot(x[0] + i * x_scale, y[0] + j * y_scale, cutoff)
+    x_inputs, y_inputs = np.indices((width, height), dtype=np.float64)
+    divergence = mandelbrot(
+        x_inputs * x_scale + x[0],
+        y_inputs * y_scale + y[0],
+        cutoff,
+    )
     return divergence
 
 
-def apply_colormap(divergence: np.array, cutoff: int, colormap: list[[float, float, float]]):
+def apply_colormap(divergence: np.array, cutoff: int, colormap: npt.NDArray[np.uint8]):
     color_index = (divergence / cutoff * len(colormap)).astype(np.uint32)
-    n, m = divergence.shape
-    pixels = np.zeros((n, m, 3), dtype=np.uint8)
-    for i in range(n):
-        for j in range(m):
-            pixels[i, j, :] = colormap[color_index[i, j]]
+    pixels = colormap[color_index]
     return pixels
 
 
