@@ -20,8 +20,8 @@ def mandelbrot(x: np.float64, y: np.float64, cutoff: np.uint32) -> np.uint32:
     z = 0 + 0j
     c = x + y * 1j
     iterations = 0
-    while iterations < cutoff and abs(z) <= 2:
-        z = z ** 2 + c
+    while iterations < cutoff and z.real * z.real + z.imag * z.imag <= 4:
+        z = z * z + c
         iterations += 1
     # The first iteration could be considered the zeroth, as z will always be 0
     # in that iteration, so the loop will be executed at least once.
