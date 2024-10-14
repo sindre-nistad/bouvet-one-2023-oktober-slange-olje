@@ -9,8 +9,8 @@ fn mandelbrot(x: f64, y: f64, cutoff: u32) -> u32 {
     let mut z: Complex<f64> = Complex::new(0.0, 0.0);
     let c = Complex::new(x, y);
     let mut iterations = 0;
-    while iterations < cutoff && z.abs() <= 2.0 {
-        z = z.powu(2) + c;
+    while iterations < cutoff && (z.re * z.re + z.im * z.im) <= 4.0 {
+        z = (z * z) + c;
         iterations += 1;
     }
     // The first iteration could be considered the zeroth, as z will always be 0
