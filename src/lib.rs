@@ -1,14 +1,27 @@
 use ::pyo3::prelude::*;
+use num::complex::{Complex, ComplexFloat};
 
-/// Formats the sum of two numbers as string.
+/// Compute the margins of the mandelbrot set
 #[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
+fn mandelbrot(x: f64, y: f64, cutoff: u32) -> PyResult<u32> {
+    let mut z: Complex<f64> = Complex::new(0.0, 0.0);
+    let c = Complex::new(x, y);
+    let mut iterations = 0;
+    while iterations < cutoff && z.abs() <= 2.0 {
+        z = z.powu(2) + c;
+        iterations += 1;
+    }
+    // The first iteration could be considered the zeroth, as z will always be 0
+    // in that iteration, so the loop will be executed at least once.
+    Ok(iterations - 1)
 }
 
-/// A Python module implemented in Rust.
 #[pymodule]
-fn pyo3(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+fn pyo3<'py>(
+    module: &Bound<'py, PyModule>
+) -> PyResult<()> {
+    module.add_function(
+        wrap_pyfunction!(mandelbrot, module)?
+    )?;
     Ok(())
 }

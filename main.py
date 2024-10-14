@@ -5,6 +5,7 @@ import pygame
 import numpy as np
 from matplotlib import colormaps
 from matplotlib.colors import ListedColormap
+from pyo3 import mandelbrot
 
 
 def get_colormap(name: str) -> list[[int, int, int]]:
@@ -12,19 +13,6 @@ def get_colormap(name: str) -> list[[int, int, int]]:
     for color in colormaps[name].colors:
         colors.append([math.floor(channel * 256) for channel in color])
     return colors
-
-
-def mandelbrot(x: float, y: float, cutoff: int) -> int:
-    """Compute the margins of the mandelbrot set"""
-    z = 0 + 0j
-    c = x + y * 1j
-    iterations = 0
-    while iterations < cutoff and abs(z) <= 2:
-        z = z ** 2 + c
-        iterations += 1
-    # The first iteration could be considered the zeroth, as z will always be 0
-    # in that iteration, so the loop will be executed at least once.
-    return iterations - 1
 
 
 def compute_mandelbrot(width: int, height: int, x: [float, float], y: [float, float], cutoff: int):
