@@ -5,7 +5,7 @@ import pygame
 import numpy as np
 from matplotlib import colormaps
 from matplotlib.colors import ListedColormap
-from pyo3 import mandelbrot, apply_colormap
+from pyo3 import compute_mandelbrot, apply_colormap
 
 
 def get_colormap(name: str) -> list[tuple[int, int, int]]:
@@ -13,17 +13,6 @@ def get_colormap(name: str) -> list[tuple[int, int, int]]:
     for color in colormaps[name].colors:
         colors.append(tuple(min(math.floor(channel * 256), 255) for channel in color))
     return colors
-
-
-def compute_mandelbrot(width: int, height: int, x: [float, float], y: [float, float], cutoff: int):
-    divergence = np.zeros((width, height), dtype=np.uint32)
-    x_scale = abs(x[0] - x[1]) / width
-    y_scale = abs(y[0] - y[1]) / height
-
-    for i in range(width):
-        for j in range(height):
-            divergence[i][j] = mandelbrot(x[0] + i * x_scale, y[0] + j * y_scale, cutoff)
-    return divergence
 
 
 def ranges(screen: pygame.Surface, center: pygame.Vector2, size: float) -> [[float, float], [float, float]]:
