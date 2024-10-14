@@ -7,9 +7,9 @@ license = "BSD-3"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11,<3.13"
+python = "^3.11,<=3.13"
 pygame = "^2.5.2"
-numpy = "^1.26.0"
+numpy = "^2.1.2"
 matplotlib = "^3.8.0"
 
 
