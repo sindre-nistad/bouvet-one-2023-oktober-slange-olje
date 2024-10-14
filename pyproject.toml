@@ -7,12 +7,15 @@ license = "BSD-3"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11,<=3.13"
+python = "^3.10,<=3.13"
 pygame = "^2.5.2"
 numpy = "^2.1.2"
 matplotlib = "^3.8.0"
 maturin = "^1.7.4"
 
+
+[tool.poetry.group.dev.dependencies]
+py-spy = "^0.3.14"
 
 [build-system]
 requires = ["maturin>=1.7,<2.0"]
