@@ -3,6 +3,7 @@ import math
 import pygame
 import numpy as np
 from matplotlib import colormaps
+from pyo3 import compute_mandelbrot
 
 
 def get_colormap(name: str) -> list[[int, int, int]]:
@@ -10,30 +11,6 @@ def get_colormap(name: str) -> list[[int, int, int]]:
     for color in colormaps[name].colors:
         colors.append([math.floor(channel * 256) for channel in color])
     return colors
-
-
-def mandelbrot(x: float, y: float, cutoff: int) -> int:
-    """Compute the margins of the mandelbrot set"""
-    z = 0 + 0j
-    c = x + y * 1j
-    iterations = 0
-    while iterations < cutoff and abs(z) <= 2:
-        z = z ** 2 + c
-        iterations += 1
-    # The first iteration could be considered the zeroth, as z will always be 0
-    # in that iteration, so the loop will be executed at least once.
-    return iterations - 1
-
-
-def compute_mandelbrot(width: int, height: int, x: [float, float], y: [float, float], cutoff: int):
-    pixes = np.zeros((width, height))
-    x_scale = abs(x[0] - x[1]) / width
-    y_scale = abs(y[0] - y[1]) / height
-
-    for i in range(width):
-        for j in range(height):
-            pixes[i][j] = mandelbrot(x[0] + i * x_scale, y[0] + j * y_scale, cutoff)
-    return pixes
 
 
 def apply_colormap(divergence: np.array, cutoff: int, colormap: list[[float, float, float]]):
