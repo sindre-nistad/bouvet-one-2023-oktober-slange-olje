@@ -5,18 +5,18 @@ import pygame
 import numpy as np
 from matplotlib import colormaps
 from matplotlib.colors import ListedColormap
-from pyo3 import mandelbrot
+from pyo3 import mandelbrot, apply_colormap
 
 
-def get_colormap(name: str) -> list[[int, int, int]]:
+def get_colormap(name: str) -> list[tuple[int, int, int]]:
     colors = []
     for color in colormaps[name].colors:
-        colors.append([math.floor(channel * 256) for channel in color])
+        colors.append(tuple(min(math.floor(channel * 256), 255) for channel in color))
     return colors
 
 
 def compute_mandelbrot(width: int, height: int, x: [float, float], y: [float, float], cutoff: int):
-    divergence = np.zeros((width, height))
+    divergence = np.zeros((width, height), dtype=np.uint32)
     x_scale = abs(x[0] - x[1]) / width
     y_scale = abs(y[0] - y[1]) / height
 
@@ -24,16 +24,6 @@ def compute_mandelbrot(width: int, height: int, x: [float, float], y: [float, fl
         for j in range(height):
             divergence[i][j] = mandelbrot(x[0] + i * x_scale, y[0] + j * y_scale, cutoff)
     return divergence
-
-
-def apply_colormap(divergence: np.array, cutoff: int, colormap: list[[float, float, float]]):
-    conv = np.floor(divergence / cutoff * len(colormap)).astype(np.uint64)
-    n, m = conv.shape
-    pixels = np.zeros((n, m, 3), dtype=np.uint8)
-    for i in range(n):
-        for j in range(m):
-            pixels[i, j, :] = colormap[conv[i][j]]
-    return pixels
 
 
 def ranges(screen: pygame.Surface, center: pygame.Vector2, size: float) -> [[float, float], [float, float]]:
