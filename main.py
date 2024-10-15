@@ -5,7 +5,7 @@ import pygame
 import numpy as np
 from matplotlib import colormaps
 from matplotlib.colors import ListedColormap
-from pyo3 import compute_mandelbrot, apply_colormap
+from pyo3 import compute_mandelbrot
 
 
 def get_colormap(name: str) -> list[tuple[int, int, int]]:
@@ -130,12 +130,12 @@ def run():
         handle_events()
 
         x_range, y_range = ranges(screen, center, size)
-        divergence = compute_mandelbrot(
+        pixels = compute_mandelbrot(
             screen.get_width(), screen.get_height(),
-            x_range, y_range, cutoff
+            x_range, y_range, cutoff,
+            colors
         )
 
-        pixels = apply_colormap(divergence, cutoff, colors)
         pygame.surfarray.blit_array(screen, pixels)
 
         # flip() the display to put your work on screen

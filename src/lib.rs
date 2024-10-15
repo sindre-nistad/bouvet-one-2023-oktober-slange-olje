@@ -1,8 +1,8 @@
 use ::pyo3::prelude::*;
 use ::pyo3::Python;
 use num::complex::{Complex, ComplexFloat};
-use numpy::{PyArrayMethods, PyArray2, PyArray3, IntoPyArray};
-use ndarray::{Array3};
+use numpy::{PyArrayMethods, PyArray3, IntoPyArray};
+use ndarray::{Array3, Array2};
 
 /// Compute the margins of the mandelbrot set
 fn mandelbrot(x: f64, y: f64, cutoff: u32) -> u32 {
@@ -18,9 +18,8 @@ fn mandelbrot(x: f64, y: f64, cutoff: u32) -> u32 {
     iterations - 1
 }
 
-#[pyfunction]
-fn compute_mandelbrot<'py>(py: Python<'py>, width: usize, height: usize, x: (f64, f64), y: (f64, f64), cutoff: u32) -> PyResult<Bound<'py, numpy::PyArray2<u32>>> {
-    let mut pixels = ndarray::Array2::<u32>::zeros((width, height));
+fn _compute_mandelbrot(width: usize, height: usize, x: (f64, f64), y: (f64, f64), cutoff: u32) -> Array2<u32> {
+    let mut pixels = Array2::<u32>::zeros((width, height));
     let x_scale = num::abs(x.0 - x.1) / (width as f64);
     let y_scale = num::abs(y.0 - y.1) / (height as f64);
 
@@ -29,20 +28,31 @@ fn compute_mandelbrot<'py>(py: Python<'py>, width: usize, height: usize, x: (f64
             pixels[[i, j]] = mandelbrot(x.0 + (i as f64) * x_scale, y.0 + (j as f64) * y_scale, cutoff)
         }
     };
-    Ok(pixels.into_pyarray_bound(py))
+    pixels
 }
 
 
 #[pyfunction]
-fn apply_colormap<'py>(
+fn compute_mandelbrot<'py>(
     py: Python<'py>,
-    divergence: Bound<'py, PyArray2<u32>>,
+    width: usize,
+    height: usize,
+    x: (f64, f64),
+    y: (f64, f64),
     cutoff: u32,
     colormap: Vec<(u8, u8, u8)>,
 ) -> PyResult<Bound<'py, PyArray3<u8>>>{
+    let divergence = _compute_mandelbrot(width, height, x, y, cutoff);
+    let pixels = apply_colormap(divergence, cutoff, colormap);
+    Ok(pixels.into_pyarray_bound(py))
+}
+
+fn apply_colormap(
+    divergence: Array2<u32>,
+    cutoff: u32,
+    colormap: Vec<(u8, u8, u8)>
+) -> Array3<u8>{
     let conv = divergence
-        .readonly()
-        .as_array()
         .map(|num| {
         (*num as f64 / (cutoff as f64) * (colormap.len() as f64)) as u8
     });
@@ -54,12 +64,11 @@ fn apply_colormap<'py>(
         pixels[[i, j, 1]] = color.1;
         pixels[[i, j, 2]] = color.2;
     }
-    Ok(pixels.into_pyarray_bound(py))
+    pixels
 }
 
 #[pymodule]
 fn pyo3(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compute_mandelbrot, m)?)?;
-    m.add_function(wrap_pyfunction!(apply_colormap, m)?)?;
     Ok(())
 }
