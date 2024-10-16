@@ -69,6 +69,21 @@
             </section>
         </section>
         <section>
+            <h1 class="r-fit-text">
+                Tidligere på
+                <br>
+                <span style="font-variant: small-caps; text-transform: none;">
+                    BouvetOne
+                </span>
+            </h1>
+            <aside class="notes">
+                <pre><code class="language-bash" data-trim data-noescape>
+git switch 4.0-rustne-slanger
+python main.py
+                </code></pre>
+            </aside>
+        </section>
+        <section>
             <section>
                 <h1 style="text-transform: none;">PyO<sub>3</sub><span class="fragment">?</span></h1>
                 <ul>
@@ -87,6 +102,9 @@
                         <li class="fragment">
                             <a href="https://github.com/PyO3/rust-numpy"><pre>rust-numpy</pre></a>
                         </li>
+                        <li class="fragment">
+                            ..med flere
+                        </li>
                     </ul>
                     </li>
                 </ul>
@@ -99,7 +117,25 @@
                     maturin init
                     maturin develop --release
                 </code></pre>
+                <aside class="notes">
+                    Alternativt, kan man bruke <code>cargo build</code> (som om det var et vanlig Rust prosjekt)
+
+                    <br>
+                    men, det krever litt mer arbeid; se <code>4.1.1-bygg-via-cargo</code> grenen
+                    <br>
+                    i tillegg, må en endre navnet på resultatet (<code>libpyo3.dylib</code>)
+
+                    <br><br>
+                    <code>maturin</code> gjør dette, og en del andre ting (pakke resultatet i et passende "wheel") for Linux, macOS og Windows
+                    <br>
+                    den gjør det mye lettere å laste opp den ferdige pakken til PyPi
+                </aside>
             </section>
+        </section>
+        <section>
+            <h1 class="r-fit-text">
+                <span class="fragment">D</span><span class="fragment">e</span><span class="fragment">m</span><span class="fragment">o</span>
+            </h1>
         </section>
         <section>
             <section data-auto-animate data-transition="slide-in">
