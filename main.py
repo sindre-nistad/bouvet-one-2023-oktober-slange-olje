@@ -3,6 +3,7 @@ import math
 import pygame
 import numpy as np
 from matplotlib import colormaps
+from matplotlib.colors import ListedColormap
 
 
 def get_colormap(name: str) -> list[[int, int, int]]:
@@ -73,6 +74,22 @@ def mouse_position(screen: pygame.Surface, center: pygame.Vector2, size: float) 
     )
 
 
+def get_possible_colors() -> list[str]:
+    # These are specified in matplotlib's documentation
+    # https://matplotlib.org/stable/users/explain/colors/colormaps.html#qualitative
+    quantitative_colors = {
+        'Pastel1', 'Pastel2', 'Paired', 'Accent', 'Dark2',
+        'Set1', 'Set2', 'Set3', 'tab10', 'tab20', 'tab20b',
+        'tab20c'
+    }
+    # Most colors also have an "_r" variant
+    quantitative_colors |= {f"{color}_r" for color in quantitative_colors}
+    return [
+        color for color in colormaps.keys()
+        if isinstance(colormaps[color], ListedColormap) and color not in quantitative_colors
+    ]
+
+
 def run():
     pygame.init()
     screen = pygame.display.set_mode((1280, 720))
@@ -81,7 +98,9 @@ def run():
     clock = pygame.time.Clock()
     running = True
 
-    colors = get_colormap("magma")
+    color = "magma"
+    possible_colors = get_possible_colors()
+    colors = get_colormap(color)
     font = pygame.sysfont.SysFont("helveticaneue", 24)
 
     # The (mathematical) center of the screen
@@ -132,6 +151,12 @@ def run():
         if keys[pygame.K_MINUS] or keys[pygame.K_KP_MINUS]:
             # Decrease 'resolution'
             cutoff = max(2, min(int(cutoff / detail_scale), cutoff - 1))
+        if keys[pygame.K_c]:
+            nonlocal color, colors
+            direction = -1 if keys[pygame.K_LSHIFT] else 1
+            next_color = (possible_colors.index(color) + direction) % len(possible_colors)
+            color = possible_colors[next_color]
+            colors = get_colormap(color)
 
     while running:
         handle_events()
