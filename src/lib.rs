@@ -2,7 +2,8 @@ use ::pyo3::prelude::*;
 use ::pyo3::Python;
 use num::complex::{Complex, ComplexFloat};
 use numpy::{PyArrayMethods, PyArray3, IntoPyArray};
-use ndarray::{Array3, Array2};
+use ndarray::{Array3, Array2, Zip};
+use ndarray::parallel::prelude::*;
 
 /// Compute the margins of the mandelbrot set
 fn mandelbrot(x: f64, y: f64, cutoff: u32) -> u32 {
@@ -23,11 +24,10 @@ fn _compute_mandelbrot(width: usize, height: usize, x: (f64, f64), y: (f64, f64)
     let x_scale = num::abs(x.0 - x.1) / (width as f64);
     let y_scale = num::abs(y.0 - y.1) / (height as f64);
 
-    for i in 0..width {
-        for j in 0..height {
-            pixels[[i, j]] = mandelbrot(x.0 + (i as f64) * x_scale, y.0 + (j as f64) * y_scale, cutoff)
-        }
-    };
+    Zip::indexed(pixels.view_mut())
+        .par_for_each(|(i, j), val| {
+            *val = mandelbrot(x.0 + (i as f64) * x_scale, y.0 + (j as f64) * y_scale, cutoff)
+        });
     pixels
 }
 
