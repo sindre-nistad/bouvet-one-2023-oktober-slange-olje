@@ -150,7 +150,7 @@ use ::pyo3::prelude::*;
 use num::complex::{Complex, ComplexFloat};
 
 #[pyfunction]
-fn mandelbrot(x: f64, y: f64, cutoff: u32) -> PyResult&lt;u32&gt; {
+fn mandelbrot(x:f64, y:f64, cutoff:u32) -> PyResult&lt;u32&gt; {
     let mut z: Complex&lt;f64&gt; = Complex::new(0.0, 0.0);
     let c = Complex::new(x, y);
     let mut iterations = 0;
@@ -197,7 +197,7 @@ use ::pyo3::prelude::*;
 use num::complex::{Complex, ComplexFloat};
 
 #[pyfunction]
-fn mandelbrot(x: f64, y: f64, cutoff: u32) -> PyResult&lt;u32&gt;; {
+fn mandelbrot(x:f64, y:f64, cutoff:u32) -> PyResult&lt;u32&gt;; {
     let mut z: Complex&lt;f64&gt; = Complex::new(0.0, 0.0);
     let c = Complex::new(x, y);
     let mut iterations = 0;
@@ -224,7 +224,7 @@ use ::pyo3::prelude::*;
 use num::complex::{Complex, ComplexFloat};
 
 #[pyfunction]
-fn mandelbrot(x: f64, y: f64, cutoff: u32) -> PyResult&lt;u32&gt;; {
+fn mandelbrot(x:f64, y:f64, cutoff:u32) -> PyResult&lt;u32&gt;; {
     let mut z: Complex&lt;f64&gt; = Complex::new(0.0, 0.0);
     let c = Complex::new(x, y);
     let mut iterations = 0;
