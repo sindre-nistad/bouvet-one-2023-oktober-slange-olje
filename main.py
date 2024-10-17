@@ -105,7 +105,7 @@ def run():
     font = pygame.sysfont.SysFont("helveticaneue", 24)
 
     # The (mathematical) center of the screen
-    center = pygame.Vector2(-1, 0)
+    center = pygame.Vector2(-1, 0.01)
     # The (mathematical) with of the screen
     size = 2
     zoom_factor = 1.2
