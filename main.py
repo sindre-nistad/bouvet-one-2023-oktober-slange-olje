@@ -1,4 +1,5 @@
 import math
+import os
 
 import pygame
 import numpy as np
@@ -98,7 +99,7 @@ def run():
     clock = pygame.time.Clock()
     running = True
 
-    color = "magma"
+    color = os.environ.get("MANDELBROT_DEFAULT_COLOR", "magma")
     possible_colors = get_possible_colors()
     colors = get_colormap(color)
     font = pygame.sysfont.SysFont("helveticaneue", 24)
